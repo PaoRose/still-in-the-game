@@ -89,11 +89,11 @@ private fun SportCard(sport: Sport, selected: Boolean, onClick: () -> Unit, modi
     val open = sport == Sport.VOLLEYBALL
     Column(
         modifier = modifier
+            .alpha(if (open) 1f else 0.55f)
             .height(160.dp)
             .clip(shape)
             .background(if (selected) CourtOrange else ChalkRaised)
             .border(1.dp, if (selected) CourtOrange else ChalkLine, shape)
-            .alpha(if (open) 1f else 0.55f)
             .clickable(enabled = open, role = Role.RadioButton, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

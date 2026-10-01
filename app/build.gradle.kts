@@ -17,7 +17,7 @@ val revenueCatKey: String = localProps.getProperty("revenuecat.apiKey") ?: ""
 
 android {
     namespace = "com.paorose.stillinthegame"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.paorose.stillinthegame"
@@ -33,6 +33,9 @@ android {
             isMinifyEnabled = false
             // Signed with the debug key so the release APK installs anywhere for judging.
             signingConfig = signingConfigs.getByName("debug")
+            // RevenueCat crashes release builds that use a Test Store key, on purpose.
+            // Release runs on promo codes only; the debug APK has the full test paywall.
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"\"")
         }
     }
     compileOptions {
@@ -41,7 +44,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
-        // RevenueCat 9.x may be compiled with a newer Kotlin than ours.
+        // RevenueCat 10.x may be compiled with a newer Kotlin than ours.
         freeCompilerArgs += "-Xskip-metadata-version-check"
     }
     buildFeatures {
@@ -65,9 +68,10 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.animation:animation")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("com.revenuecat.purchases:purchases:9.9.0")
+    implementation("com.revenuecat.purchases:purchases:10.24.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

@@ -386,10 +386,11 @@ def person(d, x, y, color, arms_up=False, h=1.8):
     d.chord([hx - w * 0.45, hy - w * 0.3, hx + w * 0.45, hy + w * 0.55], 180, 360, fill=(40, 28, 26, 255))
 
 
-STAGES = 12
+STAGES = 24
+PLAYS = [(5.0, 4.0, 3.2), (8.6, 5.2, 3.8), (13.6, 2.4, 1.6), (11.2, 6.6, 3.0), (6.4, 6.8, 1.4), (15.6, 5.4, 2.4)]
 
 
-def court_stage(n):
+def court_stage(n, ball_at=None, name=None):
     img = Image.new("RGBA", (CW, CW), (0, 0, 0, 0))
     # sky: night gradient
     sky = np.zeros((CW, CW, 4), np.uint8)
@@ -400,7 +401,7 @@ def court_stage(n):
     img = Image.fromarray(sky, "RGBA")
     d = ImageDraw.Draw(img)
     rr = random.Random(5)
-    nstars = 30 if n < STAGES else 70
+    nstars = 30 if n < 11 else 70
     for i in range(nstars):
         x, y = rr.uniform(0, CW), rr.uniform(0, CW * 0.32)
         r = rr.uniform(1, 2.6) * S
@@ -447,6 +448,23 @@ def court_stage(n):
             a, b = P(9, y, 0.2), P(9, y, 2.6)
             d.line([a, b], fill=(214, 220, 232, 255), width=int(0.2 * CS))
             d.ellipse([a[0] - 0.22 * CS, a[1] - 0.1 * CS, a[0] + 0.22 * CS, a[1] + 0.12 * CS], fill=(110, 118, 140, 255))
+    BLUE, GOLD = (76, 125, 255, 255), (255, 209, 102, 255)
+    far_team = [(x, y) for x in (2.6, 6.9) for y in (1.6, 4.5, 7.4)]
+    near_team = [(x, y) for x in (11.1, 15.4) for y in (1.6, 4.5, 7.4)]
+    # Season 2: players arrive one per day, your team (blue) first, then the other team.
+    arrived = max(0, n - 12)
+    # alternate: one of yours, then one of theirs
+    far_now = far_team[:min(6, (arrived + 1) // 2)]
+    near_now = near_team[:min(6, arrived // 2)]
+    if n >= 12:  # scoreboard at the back left, facing the court
+        for yy in (3.3, 5.7):
+            d.line([P(-2.4, yy, 0), P(-2.4, yy, 2.6)], fill=(58, 66, 86, 255), width=int(0.16 * CS))
+        quad(d, [(-2.4, 2.8, 2.6), (-2.4, 6.2, 2.6), (-2.4, 6.2, 4.4), (-2.4, 2.8, 4.4)], (14, 18, 28, 255))
+        for y0, y1 in ((3.2, 3.9), (4.1, 4.8), (5.2, 5.9)):
+            quad(d, [(-2.39, y0, 3.0), (-2.39, y1, 3.0), (-2.39, y1, 3.9), (-2.39, y0, 3.9)],
+                 (255, 107, 53, 255) if y0 != 4.1 else (255, 209, 102, 255))
+    for x, y in sorted(far_now, key=lambda p: p[0] + p[1]):  # behind the net, back to front
+        person(d, x, y, BLUE, arms_up=(x > 6 and y == 4.5))
     if n >= 5:  # net
         top, bot = 2.43, 1.45
         net = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -465,21 +483,23 @@ def court_stage(n):
         img = Image.alpha_composite(img, net)
         d = ImageDraw.Draw(img)
 
-    if n >= 10:  # teammates
-        person(d, 4.5, 3.0, (76, 125, 255, 255), arms_up=True)
-        person(d, 13.5, 6.0, (255, 209, 102, 255))
-        person(d, 6.8, 7.2, (76, 125, 255, 255))
+    for x, y in sorted(near_now, key=lambda p: p[0] + p[1]):  # in front of the net
+        person(d, x, y, GOLD)
     if n >= 6:  # the ball, with a little shadow on the court
-        bx, by = P(11.5, 3.5, 0.2)
-        d.ellipse([bx - 0.4 * CS, by - 0.12 * CS, bx + 0.4 * CS, by + 0.12 * CS], fill=(0, 0, 0, 90))
+        bxw, byw, bz = ball_at or (13.2, 3.0, 0.0)
+        bx, by = P(bxw, byw, 0.2)
+        # shadow on the court, smaller and softer the higher the ball flies
+        k = 1.0 / (1 + bz * 0.35)
+        d.ellipse([bx - 0.4 * CS * k, by - 0.12 * CS * k, bx + 0.4 * CS * k, by + 0.12 * CS * k], fill=(0, 0, 0, int(90 * k)))
         bd = int(0.85 * CS)
         bimg = ball(bd, ss=2)
-        img.alpha_composite(bimg, (int(bx - bd / 2), int(by - bd * 1.75)))
+        _, top_y = P(bxw, byw, 0.2 + bz)
+        img.alpha_composite(bimg, (int(bx - bd / 2), int(top_y - bd * 1.75)))
         d = ImageDraw.Draw(img)
     if n >= 7:  # bench along the front side
         box(d, 3, 11.2, 8.5, 11.9, 0.18, 0.75, (176, 112, 70, 255), (120, 74, 48, 255), (150, 94, 60, 255))
         box(d, 3.2, 11.75, 8.3, 11.9, 0.75, 1.5, (176, 112, 70, 255), (120, 74, 48, 255), (150, 94, 60, 255))
-    if n >= 11:  # bag and bottle on the bench side
+    if n >= 10:  # bag and bottle on the bench side
         box(d, 9.5, 11.2, 10.8, 11.9, 0.18, 0.75, (76, 125, 255, 255), (48, 86, 196, 255), (60, 104, 226, 255))
         bx, by = P(11.6, 11.5, 0.18)
         bt = P(11.6, 11.5, 1.0)
@@ -494,7 +514,7 @@ def court_stage(n):
         img = add(img, glow(img.size, lamp[0], lamp[1] + 40 * S, 7 * CS, 3.4 * CS, (255, 196, 110), 120, 60 * S))
         arm = P(18.9, 0.9, 6.2)
         img = add(img, glow(img.size, arm[0], arm[1], 1.2 * CS, 1.2 * CS, (255, 226, 150), 200, 18 * S))
-    if n >= 12:  # string lights across the back, and a warm glow over the court
+    if n >= 11:  # string lights across the back, and a warm glow over the court
         d = ImageDraw.Draw(img)
         a, b = P(-2.3, -2.4, 3.6), P(20.3, -2.3, 3.8)
         pts = []
@@ -514,7 +534,7 @@ def court_stage(n):
         c = P(9, 4.5, 0)
         img = add(img, glow(img.size, c[0], c[1], 13 * CS, 6 * CS, ORANGE, 55, 80 * S))
     out = img.resize((1080, 1080), Image.LANCZOS).convert("RGB")
-    out.save(f"{OUT}/court_stage_{n:02d}.jpg", quality=86)
+    out.save(f"{OUT}/{name or f'court_stage_{n:02d}'}.jpg", quality=86)
     return out
 
 
@@ -573,5 +593,8 @@ if __name__ == "__main__":
     if "court" in what:
         for n in range(STAGES + 1):
             court_stage(n)
+        # After the full team is in, the ball moves around like a rally.
+        for i, pos in enumerate(PLAYS, 1):
+            court_stage(STAGES, ball_at=pos, name=f"court_play_{i}")
     if "today" in what:
         today_art(); done_art()

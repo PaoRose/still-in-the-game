@@ -59,6 +59,9 @@ fun TodayScreen(
     onPlus: () -> Unit,
     activity: Activity,
     doneToday: Boolean,
+    courtComplete: Boolean = false,
+    /** Free "give me another one" left today, or null for unlimited (Plus). */
+    skipsLeft: Int? = null,
     onDone: () -> Unit,
     onAnother: () -> Unit,
     onCourt: () -> Unit
@@ -88,7 +91,7 @@ fun TodayScreen(
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (doneToday) DoneState(sport) else ActivityState(sport, activity)
+            if (doneToday) DoneState(sport, courtComplete) else ActivityState(sport, activity)
         }
 
         Column(Modifier.padding(horizontal = 24.dp)) {
@@ -101,7 +104,14 @@ fun TodayScreen(
             } else {
                 PrimaryButton(text = "I did it", onClick = onDone, container = Midnight, content = Chalk)
                 Spacer(Modifier.height(4.dp))
-                TextAction("Give me another one", Midnight, onAnother, Modifier.fillMaxWidth())
+                TextAction(
+                    when {
+                        skipsLeft == null -> "Give me another one"
+                        skipsLeft > 0 -> "Give me another one ($skipsLeft left today)"
+                        else -> "More options with Plus"
+                    },
+                    Midnight, onAnother, Modifier.fillMaxWidth()
+                )
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -172,7 +182,7 @@ private fun ActivityState(sport: Sport, activity: Activity) {
 }
 
 @Composable
-private fun DoneState(sport: Sport) {
+private fun DoneState(sport: Sport, courtComplete: Boolean) {
     Spacer(Modifier.height(8.dp))
     Box(
         Modifier
@@ -198,7 +208,8 @@ private fun DoneState(sport: Sport) {
     Text("You showed up today.", style = MaterialTheme.typography.headlineLarge, color = Midnight)
     Spacer(Modifier.height(16.dp))
     Text(
-        "That counts. Your ${sport.field} has a new piece. Come back tomorrow for the next one.",
+        if (courtComplete) "That counts. Your ${sport.field} is complete and you keep showing up. Come back tomorrow."
+        else "That counts. Your ${sport.field} has a new piece. Come back tomorrow for the next one.",
         style = MaterialTheme.typography.bodyLarge,
         color = MutedOnLight
     )

@@ -104,7 +104,7 @@ fun SituationScreen(
         }
 
         if (situation == null) Hint("Choose where you are now to continue.", MutedOnDark)
-        PrimaryButton(text = "Next", onClick = onNext, enabled = situation != null)
+        PrimaryButton(text = if (editing) "Save" else "Next", onClick = onNext, enabled = situation != null)
         Spacer(Modifier.height(32.dp))
     }
 }

@@ -37,7 +37,8 @@ fun PrimaryButton(
     content: Color = Midnight,
     // Disabled = solid and readable, never a faded version of the active color.
     disabledContainer: Color = MidnightRaised,
-    disabledContent: Color = MutedOnDark
+    disabledContent: Color = MutedOnDark,
+    arrow: Boolean = true
 ) {
     Button(
         onClick = onClick,
@@ -52,7 +53,7 @@ fun PrimaryButton(
             disabledContentColor = disabledContent
         )
     ) {
-        Text(text = "$text  →", style = MaterialTheme.typography.labelLarge)
+        Text(text = if (arrow) "$text  →" else text, style = MaterialTheme.typography.labelLarge)
     }
 }
 

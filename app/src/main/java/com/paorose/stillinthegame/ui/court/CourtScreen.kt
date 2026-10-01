@@ -60,9 +60,21 @@ private fun pieceLine(piece: Int): String {
         "There's a bench for you, right by the court.",
         "Trees around your court. It's starting to feel like home.",
         "The street lamp is on. Someone left the light on for you.",
-        "Your teammates are here.",
         "Your bag and your bottle, ready when you are.",
-        "Lights on, full court. You never left the game."
+        "Lights on. The court is glowing.",
+        "The scoreboard is on. Your court is complete. Next season, your team arrives.",
+        "Your setter just walked in.",
+        "The other team's first player is warming up.",
+        "Your outside hitter is here.",
+        "Their outside hitter answers.",
+        "Your middle blocker joined.",
+        "Their middle blocker too. It's starting to feel like a match.",
+        "Your opposite is on the court.",
+        "Four of them across the net now.",
+        "Your libero is here. Nothing gets past them.",
+        "Their libero just walked in.",
+        "Your other hitter is here. Your team is complete.",
+        "Six on each side. Game on. You never left the game."
     )
     return lines[(piece - 1).coerceIn(0, lines.lastIndex)]
 }
@@ -83,7 +95,7 @@ fun CourtScreen(
     LaunchedEffect(connected, animateNewest) {
         if (animateNewest) reveal.animateTo(1f, tween(1400, easing = FastOutSlowInEasing))
     }
-    val pieces = connected.coerceAtMost(FIELD_PIECES)
+    val pieces = connected.coerceAtMost(TOTAL_STAGES)
 
     Column(
         Modifier
@@ -100,7 +112,19 @@ fun CourtScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("STILL IN THE GAME", style = MaterialTheme.typography.labelSmall, color = MutedOnDark)
+            // Plus members see the "+" in the app name, like a membership badge.
+            Text(
+                androidx.compose.ui.text.buildAnnotatedString {
+                    append("STILL IN THE GAME")
+                    if (isPlus) {
+                        pushStyle(androidx.compose.ui.text.SpanStyle(color = RallyYellow))
+                        append("+")
+                        pop()
+                    }
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = MutedOnDark
+            )
             Row {
                 if (!isPlus) TextAction("Plus", RallyYellow, onPlus)
                 TextAction("Settings", Chalk, onSettings)
@@ -128,16 +152,26 @@ fun CourtScreen(
                 .background(Brush.radialGradient(listOf(ElectricBlue.copy(alpha = 0.12f), Color.Transparent)))
         ) {
             CourtArt(
-                pieces = pieces,
+                total = connected,
                 reveal = reveal.value,
                 modifier = Modifier
                     .fillMaxSize()
-                    .semantics { contentDescription = "Your ${sport.field}: $pieces of $FIELD_PIECES pieces rebuilt" }
+                    .semantics { contentDescription = "Your ${sport.field}: $pieces of $TOTAL_STAGES pieces" }
             )
         }
 
         Spacer(Modifier.height(12.dp))
-        // One mark per piece: filled for the days you showed up.
+        // One mark per piece. After the court is complete, a new season starts the bar again.
+        val season = if (connected <= FIELD_PIECES) 1 else (connected - 1) / FIELD_PIECES + 1
+        val inSeason = if (connected == 0) 0 else (connected - 1) % FIELD_PIECES + 1
+        if (season > 1) {
+            Text(
+                "SEASON $season · $inSeason OF $FIELD_PIECES",
+                style = MaterialTheme.typography.labelSmall,
+                color = RallyYellow,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
         Row(
             Modifier.fillMaxWidth().semantics { contentDescription = "$pieces of $FIELD_PIECES pieces" },
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -148,7 +182,7 @@ fun CourtScreen(
                         .weight(1f)
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(if (i < pieces) CourtOrange else MidnightLine)
+                        .background(if (i < inSeason) CourtOrange else MidnightLine)
                 )
             }
         }
@@ -165,7 +199,7 @@ fun CourtScreen(
             )
             Spacer(Modifier.width(16.dp))
             Text(
-                "TIMES YOU SHOWED UP\nFOR ${sport.label.uppercase()}",
+                "ACTIVITIES\nCOMPLETED",
                 style = MaterialTheme.typography.labelSmall,
                 color = Chalk,
                 modifier = Modifier.padding(bottom = 10.dp)
@@ -174,7 +208,14 @@ fun CourtScreen(
         Spacer(Modifier.height(4.dp))
         val line = when {
             connected == 0 -> "Every small action brings a piece back. Your first one is waiting."
-            connected > FIELD_PIECES -> "Your court is complete, and you keep showing up. New pieces are on the way."
+            connected > TOTAL_STAGES -> listOf(
+                "Rally on. The ball is in your team's hands.",
+                "Over the net. Their side now.",
+                "Dig! They kept it alive.",
+                "Set up for the spike.",
+                "Low ball, great save.",
+                "Long rally. Nobody is giving up, including you."
+            )[(connected - TOTAL_STAGES - 1) % 6] + " Season $season."
             else -> pieceLine(pieces)
         }
         Text(line, style = MaterialTheme.typography.bodyMedium, color = MutedOnDark)

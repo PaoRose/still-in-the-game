@@ -23,13 +23,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paorose.stillinthegame.R
 import com.paorose.stillinthegame.ui.common.PrimaryButton
+import com.paorose.stillinthegame.ui.common.TextAction
+import androidx.compose.foundation.layout.fillMaxWidth
 import com.paorose.stillinthegame.ui.theme.Chalk
 import com.paorose.stillinthegame.ui.theme.CourtOrange
 import com.paorose.stillinthegame.ui.theme.Midnight
 import com.paorose.stillinthegame.ui.theme.MutedOnDark
 
 @Composable
-fun WelcomeScreen(onStart: () -> Unit) {
+fun WelcomeScreen(onStart: () -> Unit, onSignIn: () -> Unit = {}) {
     Box(
         Modifier
             .fillMaxSize()
@@ -73,7 +75,10 @@ fun WelcomeScreen(onStart: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
             PrimaryButton(text = "Get started", onClick = onStart)
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(4.dp))
+            // The usual second option on a welcome screen, for people coming back.
+            TextAction("I have an account or a code", Chalk, onSignIn, Modifier.fillMaxWidth())
+            Spacer(Modifier.height(20.dp))
         }
     }
 }

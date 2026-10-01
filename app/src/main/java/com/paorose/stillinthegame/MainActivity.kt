@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,6 +36,8 @@ import com.paorose.stillinthegame.data.Situation
 import com.paorose.stillinthegame.data.Sport
 import com.paorose.stillinthegame.data.Store
 import com.paorose.stillinthegame.ui.court.CourtScreen
+import com.paorose.stillinthegame.ui.court.FIELD_PIECES
+import com.paorose.stillinthegame.ui.court.TOTAL_STAGES
 import com.paorose.stillinthegame.ui.onboarding.SituationScreen
 import com.paorose.stillinthegame.ui.onboarding.WelcomeScreen
 import com.paorose.stillinthegame.ui.onboarding.WorldScreen
@@ -44,6 +47,7 @@ import com.paorose.stillinthegame.ui.settings.SettingsScreen
 import com.paorose.stillinthegame.ui.theme.Midnight
 import com.paorose.stillinthegame.ui.theme.StillTheme
 import com.paorose.stillinthegame.ui.today.TodayScreen
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 enum class Screen { WELCOME, WORLD, SITUATION, TODAY, COURT, PLUS, SETTINGS, ACCOUNT }
@@ -71,17 +75,28 @@ class MainActivity : ComponentActivity() {
 private fun AppRoot(store: Store, profile: Profile) {
     val scope = rememberCoroutineScope()
 
-    var screen by remember { mutableStateOf(if (profile.onboarded) Screen.TODAY else Screen.WELCOME) }
-    var animateNewest by remember { mutableStateOf(false) }
-    var askReset by remember { mutableStateOf(false) }
+    var screen by rememberSaveable { mutableStateOf(if (profile.onboarded) Screen.TODAY else Screen.WELCOME) }
+    var animateNewest by rememberSaveable { mutableStateOf(false) }
+    // The count the court should animate to, so it only animates once the save has landed.
+    var revealFor by rememberSaveable { mutableStateOf(-1) }
+    // Keeps today's activity on screen while it fades out, so the next one doesn't flash.
+    var frozen by remember { mutableStateOf<com.paorose.stillinthegame.data.Activity?>(null) }
+    LaunchedEffect(screen) {
+        if (screen == Screen.COURT && frozen != null) {
+            kotlinx.coroutines.delay(800)
+            frozen = null
+        }
+    }
+    var busy by remember { mutableStateOf(false) }
+    var askReset by rememberSaveable { mutableStateOf(false) }
     val isPlus by Plus.active.collectAsState()
-    var backFromPlus by remember { mutableStateOf(Screen.TODAY) }
-    var backFromSettings by remember { mutableStateOf(Screen.COURT) }
-    var backFromAccount by remember { mutableStateOf(Screen.SETTINGS) }
+    var backFromPlus by rememberSaveable { mutableStateOf(Screen.TODAY) }
+    var backFromSettings by rememberSaveable { mutableStateOf(Screen.COURT) }
+    var backFromAccount by rememberSaveable { mutableStateOf(Screen.SETTINGS) }
 
     // Onboarding draft, saved only when the user finishes "Where are you now?".
-    var sport by remember { mutableStateOf<Sport?>(profile.sport ?: Sport.VOLLEYBALL) }
-    var situation by remember { mutableStateOf(profile.situation) }
+    var sport by rememberSaveable { mutableStateOf<Sport?>(profile.sport ?: Sport.VOLLEYBALL) }
+    var situation by rememberSaveable { mutableStateOf(profile.situation) }
     var misses by remember { mutableStateOf(profile.misses) }
 
     BackHandler(enabled = screen != Screen.WELCOME && screen != Screen.TODAY) {
@@ -110,7 +125,13 @@ private fun AppRoot(store: Store, profile: Profile) {
         label = "screens"
     ) { current ->
         when (current) {
-            Screen.WELCOME -> WelcomeScreen(onStart = { screen = Screen.WORLD })
+            Screen.WELCOME -> WelcomeScreen(
+                onStart = { screen = Screen.WORLD },
+                onSignIn = {
+                    backFromAccount = Screen.WELCOME
+                    screen = Screen.ACCOUNT
+                }
+            )
 
             Screen.WORLD -> WorldScreen(
                 selected = sport,
@@ -128,8 +149,10 @@ private fun AppRoot(store: Store, profile: Profile) {
                     val sp = sport
                     val si = situation
                     if (sp != null && si != null) {
+                        val editing = profile.onboarded
                         scope.launch { store.saveSetup(sp, si, misses) }
-                        screen = Screen.TODAY
+                        // Editing from Settings goes back to Settings, like any other settings page.
+                        screen = if (editing) Screen.SETTINGS else Screen.TODAY
                     }
                 }
             )
@@ -138,7 +161,7 @@ private fun AppRoot(store: Store, profile: Profile) {
                 val sp = profile.sport ?: sport ?: Sport.VOLLEYBALL
                 val si = profile.situation ?: situation ?: Situation.CANT
                 val ms = if (profile.onboarded) profile.misses else misses
-                val activity = ActivityLibrary.pick(sp, si, ms, profile.doneIds, profile.skips, profile.today)
+                val activity = frozen ?: ActivityLibrary.pick(sp, si, ms, profile.doneIds, profile.skips, profile.today)
                 TodayScreen(
                     sport = sp,
                     day = profile.journeyDay,
@@ -149,17 +172,33 @@ private fun AppRoot(store: Store, profile: Profile) {
                     },
                     activity = activity,
                     // Plus can do more than one activity a day.
-                    doneToday = profile.doneToday && !isPlus,
+                    doneToday = frozen == null && profile.doneToday && !isPlus,
+                    courtComplete = profile.connected >= TOTAL_STAGES,
+                    skipsLeft = if (isPlus) null else (FREE_SKIPS - profile.skips).coerceAtLeast(0),
                     onDone = {
-                        scope.launch {
-                            store.complete(activity.id)
+                        // Ignore double taps while the save is in flight.
+                        if (!busy) {
+                            busy = true
+                            // Go to the court right away; the new piece animates when the save lands.
+                            frozen = activity
+                            revealFor = profile.connected + 1
                             animateNewest = true
                             screen = Screen.COURT
+                            scope.launch {
+                                try {
+                                    store.complete(activity.id)
+                                } finally {
+                                    busy = false
+                                }
+                            }
                         }
                     },
                     onAnother = {
                         if (isPlus || profile.skips < FREE_SKIPS) {
-                            scope.launch { store.skip() }
+                            if (!busy) {
+                                busy = true
+                                scope.launch { try { store.skip() } finally { busy = false } }
+                            }
                         } else {
                             backFromPlus = Screen.TODAY
                             screen = Screen.PLUS
@@ -176,7 +215,7 @@ private fun AppRoot(store: Store, profile: Profile) {
                 sport = profile.sport ?: sport ?: Sport.VOLLEYBALL,
                 connected = profile.connected,
                 day = profile.journeyDay,
-                animateNewest = animateNewest,
+                animateNewest = animateNewest && profile.connected == revealFor,
                 isPlus = isPlus,
                 onToday = {
                     animateNewest = false

@@ -89,22 +89,14 @@ fun AccountScreen(onClose: () -> Unit) {
             .background(Midnight)
             .systemBarsPadding()
             .imePadding()
-            .padding(horizontal = 24.dp)
     ) {
-        Row(
-            Modifier.fillMaxWidth().height(72.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Account", style = MaterialTheme.typography.headlineMedium, color = Chalk)
-            TextButton(onClick = onClose) { Text("Done", style = MaterialTheme.typography.labelLarge, color = Chalk) }
-        }
+        SettingsTopBar("Account", onClose)
 
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             // Promo code first: it's the quickest way into Plus.
             Spacer(Modifier.height(16.dp))
             Card {
-            Text("PROMO CODE", style = MaterialTheme.typography.labelSmall, color = RallyYellow)
+            Text("Redeem code", style = MaterialTheme.typography.titleMedium, color = Chalk)
             Spacer(Modifier.height(8.dp))
             if (redeemed != null) {
                 Text("Code $redeemed is active on this phone.", style = MaterialTheme.typography.bodyLarge, color = Chalk)
@@ -113,7 +105,7 @@ fun AccountScreen(onClose: () -> Unit) {
                 }
             } else {
                 Text(
-                    "Have a code from us or from the Shipaton judges' notes? Type it here to unlock Plus.",
+                    "Enter a promo code to unlock Plus. Judges: use the code in the testing notes.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MutedOnDark
                 )
@@ -121,7 +113,7 @@ fun AccountScreen(onClose: () -> Unit) {
                 Field(
                     value = code,
                     onChange = { code = it; codeMsg = null },
-                    label = "Promo code",
+                    label = "Code",
                     caps = KeyboardCapitalization.Characters,
                     onGo = { redeem() }
                 )
@@ -130,13 +122,13 @@ fun AccountScreen(onClose: () -> Unit) {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = if (codeOk) RallyYellow else CourtOrange)
                 }
                 Spacer(Modifier.height(12.dp))
-                PrimaryButton(text = "Redeem", onClick = { redeem() }, enabled = code.isNotBlank())
+                PrimaryButton(text = "Redeem", arrow = false, onClick = { redeem() }, enabled = code.isNotBlank())
             }
 
             }
             Spacer(Modifier.height(20.dp))
             Card {
-            Text("SIGN IN WITH A USERNAME", style = MaterialTheme.typography.labelSmall, color = MutedOnDark)
+            Text("Sign in", style = MaterialTheme.typography.titleMedium, color = Chalk)
             Spacer(Modifier.height(8.dp))
             if (account != null) {
                 Text("Signed in as $account", style = MaterialTheme.typography.bodyLarge, color = Chalk)
@@ -166,6 +158,7 @@ fun AccountScreen(onClose: () -> Unit) {
                 Spacer(Modifier.height(12.dp))
                 PrimaryButton(
                     text = if (busy) "Signing in..." else "Sign in",
+                    arrow = false,
                     onClick = { signIn() },
                     enabled = name.isNotBlank() && !busy,
                     container = Chalk
