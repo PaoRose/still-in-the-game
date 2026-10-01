@@ -13,7 +13,8 @@ class StillApp : Application() {
         if (key.isNotBlank()) {
             Purchases.logLevel = LogLevel.DEBUG
             Purchases.configure(PurchasesConfiguration.Builder(this, key).build())
-            Plus.start()
         }
+        // Always start: promo codes work even in builds without a RevenueCat key.
+        Plus.start(this)
     }
 }

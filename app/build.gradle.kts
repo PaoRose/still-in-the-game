@@ -31,6 +31,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Signed with the debug key so the release APK installs anywhere for judging.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -56,6 +58,8 @@ dependencies {
     implementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.13.1")
+    // Installs Compose's baseline profiles, so the app opens faster.
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.compose.ui:ui")

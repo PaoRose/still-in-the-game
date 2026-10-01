@@ -3,6 +3,8 @@ package com.paorose.stillinthegame.ui.onboarding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,9 +44,10 @@ fun WorldScreen(selected: Sport?, onSelect: (Sport) -> Unit, onNext: () -> Unit)
             .background(Chalk)
             .systemBarsPadding()
             .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.height(32.dp))
-        StepHeader(step = 1, total = 4, color = Midnight, track = ChalkLine)
+        StepHeader(step = 1, total = 2, color = Midnight, track = ChalkLine)
         Spacer(Modifier.height(28.dp))
         Text("What's your world?", style = MaterialTheme.typography.headlineLarge, color = Midnight)
         Spacer(Modifier.height(8.dp))
@@ -64,7 +67,7 @@ fun WorldScreen(selected: Sport?, onSelect: (Sport) -> Unit, onNext: () -> Unit)
             Spacer(Modifier.height(12.dp))
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(24.dp))
         if (selected == null) Hint("Pick one to continue.", MutedOnLight)
         PrimaryButton(
             text = "Next",

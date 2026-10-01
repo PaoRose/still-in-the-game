@@ -71,6 +71,7 @@ private fun pieceLine(piece: Int): String {
 fun CourtScreen(
     sport: Sport,
     connected: Int,
+    day: Int,
     animateNewest: Boolean,
     isPlus: Boolean,
     onToday: () -> Unit,
@@ -105,7 +106,8 @@ fun CourtScreen(
                 TextAction("Settings", Chalk, onSettings)
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             "Your comeback journey",
             style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp, lineHeight = 38.sp),
@@ -134,7 +136,23 @@ fun CourtScreen(
             )
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+        // One mark per piece: filled for the days you showed up.
+        Row(
+            Modifier.fillMaxWidth().semantics { contentDescription = "$pieces of $FIELD_PIECES pieces" },
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            repeat(FIELD_PIECES) { i ->
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(if (i < pieces) CourtOrange else MidnightLine)
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             // Big editorial number. It only ever counts up.
             Text(
@@ -147,7 +165,7 @@ fun CourtScreen(
             )
             Spacer(Modifier.width(16.dp))
             Text(
-                "WAYS YOU STAYED\nPART OF ${sport.label.uppercase()}",
+                "TIMES YOU SHOWED UP\nFOR ${sport.label.uppercase()}",
                 style = MaterialTheme.typography.labelSmall,
                 color = Chalk,
                 modifier = Modifier.padding(bottom = 10.dp)

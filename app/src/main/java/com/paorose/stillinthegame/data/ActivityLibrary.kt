@@ -76,7 +76,7 @@ object ActivityLibrary {
             "Picture the place you're going back to.", setOf(PLAYING, COMPETITION, IMPROVING), setOf(CANT, DIFFERENT)),
         Activity("reflect-best", Kind.REFLECT, 5, "Remember your best moment in {sport}. Write it down in as much detail as you can.",
             "That moment is still yours. So is the next one.", setOf(PLAYING, BELONGING)),
-        Activity("reflect-routine", Kind.REFLECT, 5, "Keep your practice time today: use it for 10 minutes of {sport}, any way you can.",
+        Activity("reflect-routine", Kind.REFLECT, 10, "Keep your practice time today. Spend 10 minutes on {sport} without playing: read, watch or plan.",
             "Your routine is still yours. It just looks different for now.", setOf(ROUTINE)),
         Activity("reflect-letter", Kind.REFLECT, 10, "Write a short note to yourself for your first day back.",
             "Future you will want to read this.", setOf(BELONGING, PLAYING), setOf(CANT, DIFFERENT)),

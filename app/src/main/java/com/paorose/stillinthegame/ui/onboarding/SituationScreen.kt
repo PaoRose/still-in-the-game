@@ -50,7 +50,8 @@ fun SituationScreen(
     misses: Set<Miss>,
     onSituation: (Situation) -> Unit,
     onToggleMiss: (Miss) -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    editing: Boolean = false
 ) {
     Column(
         Modifier
@@ -65,7 +66,7 @@ fun SituationScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(20.dp))
-            StepHeader(step = 2, total = 4, color = ElectricBlue, track = MidnightLine)
+            if (!editing) StepHeader(step = 2, total = 2, color = ElectricBlue, track = MidnightLine)
             Spacer(Modifier.height(18.dp))
             Text("Where are you now?", style = MaterialTheme.typography.headlineLarge, color = Chalk)
             Spacer(Modifier.height(16.dp))

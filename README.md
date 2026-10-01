@@ -27,7 +27,11 @@ You can reach Plus three ways:
 
 1. Promo code. Open the court, tap Settings, then "Redeem a promo code" (or "Have a promo code?" on the Plus screen). Type `SHIPATON2026`. Works offline and even in a build without a RevenueCat key.
 2. Test purchase. Builds with a RevenueCat Test Store key show the real paywall. Tap "Get Plus" and confirm the test purchase. No money moves.
-3. Account. Sign in with a username in Settings > Account. Plus granted to that user in the RevenueCat dashboard (a promotional entitlement) turns on right away.
+3. Test account. In Settings, tap "Sign in with a username" and type `judge`. That user has Plus granted in the RevenueCat dashboard (a promotional entitlement), so Plus turns on as soon as you sign in.
+
+Sign in only asks for a username. There's no email, phone or password, because the app has no backend: the username becomes the RevenueCat app user ID. It's meant for keeping Plus on a new phone, not for protecting private data, and your court never leaves the phone. Proper sign in with Google is on the list for later.
+
+To see the days go by without waiting, use Settings > "Jump to tomorrow" (or "Demo: jump to tomorrow" after finishing an activity). Each day you can do a new activity and a new piece of the court comes back.
 
 A redeemed code is also saved as the `promo_code` attribute on the RevenueCat customer, so it shows up in the dashboard.
 

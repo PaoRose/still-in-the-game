@@ -54,6 +54,9 @@ import com.paorose.stillinthegame.ui.theme.MutedOnLight
 @Composable
 fun TodayScreen(
     sport: Sport,
+    day: Int,
+    onNextDay: () -> Unit,
+    onPlus: () -> Unit,
     activity: Activity,
     doneToday: Boolean,
     onDone: () -> Unit,
@@ -75,7 +78,7 @@ fun TodayScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(sport.label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MutedOnLight)
+            Text("DAY %02d · ${sport.label.uppercase()}".format(day), style = MaterialTheme.typography.labelSmall, color = Midnight)
             TextAction("Your ${sport.field}", Midnight, onCourt)
         }
 
@@ -91,6 +94,10 @@ fun TodayScreen(
         Column(Modifier.padding(horizontal = 24.dp)) {
             if (doneToday) {
                 PrimaryButton(text = "See your ${sport.field}", onClick = onCourt, container = Midnight, content = Chalk)
+                Spacer(Modifier.height(4.dp))
+                // For demos and judges: real users just come back tomorrow.
+                TextAction("Want another one today? Get Plus", Midnight, onPlus, Modifier.fillMaxWidth())
+                TextAction("Demo: jump to tomorrow", MutedOnLight, onNextDay, Modifier.fillMaxWidth())
             } else {
                 PrimaryButton(text = "I did it", onClick = onDone, container = Midnight, content = Chalk)
                 Spacer(Modifier.height(4.dp))

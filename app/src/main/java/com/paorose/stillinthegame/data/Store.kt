@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import androidx.datastore.preferences.core.Preferences
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 private val Context.dataStore by preferencesDataStore(name = "still_in_the_game")
 
@@ -24,12 +26,25 @@ data class Profile(
     val lastDoneDay: String? = null,
     /** How many times "give me another one" was tapped today. */
     val skipsToday: Int = 0,
-    val skipsDay: String? = null
+    val skipsDay: String? = null,
+    /** Days added by "Jump to tomorrow", so a demo can show several days in a few minutes. */
+    val dayOffset: Int = 0,
+    /** The day the journey started, ISO date. */
+    val firstDay: String? = null
 ) {
+    val today: LocalDate get() = LocalDate.now().plusDays(dayOffset.toLong())
     val onboarded get() = sport != null && situation != null
-    val doneToday get() = lastDoneDay == LocalDate.now().toString()
-    val skips get() = if (skipsDay == LocalDate.now().toString()) skipsToday else 0
+    val doneToday get() = lastDoneDay == today.toString()
+    val skips get() = if (skipsDay == today.toString()) skipsToday else 0
+    /** Day 1 is the day you started. */
+    val journeyDay: Int
+        get() = firstDay
+            ?.let { runCatching { ChronoUnit.DAYS.between(LocalDate.parse(it), today).toInt() + 1 }.getOrNull() }
+            ?.coerceAtLeast(1) ?: 1
 }
+
+private fun todayFor(p: Preferences): String =
+    LocalDate.now().plusDays((p[Store.OFFSET] ?: 0).toLong()).toString()
 
 class Store(private val context: Context) {
 
@@ -42,7 +57,9 @@ class Store(private val context: Context) {
             doneIds = p[DONE].orEmpty(),
             lastDoneDay = p[LAST_DAY],
             skipsToday = p[SKIPS] ?: 0,
-            skipsDay = p[SKIPS_DAY]
+            skipsDay = p[SKIPS_DAY],
+            dayOffset = p[OFFSET] ?: 0,
+            firstDay = p[FIRST_DAY]
         )
     }
 
@@ -51,6 +68,7 @@ class Store(private val context: Context) {
             it[SPORT] = sport.name
             it[SITUATION] = situation.name
             it[MISSES] = misses.map { m -> m.name }.toSet()
+            if (it[FIRST_DAY] == null) it[FIRST_DAY] = todayFor(it)
         }
     }
 
@@ -58,17 +76,22 @@ class Store(private val context: Context) {
         context.dataStore.edit {
             it[CONNECTED] = (it[CONNECTED] ?: 0) + 1
             it[DONE] = it[DONE].orEmpty() + activityId
-            it[LAST_DAY] = LocalDate.now().toString()
+            it[LAST_DAY] = todayFor(it)
         }
     }
 
     suspend fun skip() {
-        val today = LocalDate.now().toString()
         context.dataStore.edit {
+            val today = todayFor(it)
             val current = if (it[SKIPS_DAY] == today) it[SKIPS] ?: 0 else 0
             it[SKIPS] = current + 1
             it[SKIPS_DAY] = today
         }
+    }
+
+    /** Demo helper: moves the app to the next day. */
+    suspend fun nextDay() {
+        context.dataStore.edit { it[OFFSET] = (it[OFFSET] ?: 0) + 1 }
     }
 
     /** For the demo and for "change my sport": wipes everything. */
@@ -76,7 +99,7 @@ class Store(private val context: Context) {
         context.dataStore.edit { it.clear() }
     }
 
-    private companion object {
+    companion object {
         val SPORT = stringPreferencesKey("sport")
         val SITUATION = stringPreferencesKey("situation")
         val MISSES = stringSetPreferencesKey("misses")
@@ -85,5 +108,7 @@ class Store(private val context: Context) {
         val LAST_DAY = stringPreferencesKey("last_done_day")
         val SKIPS = intPreferencesKey("skips_today")
         val SKIPS_DAY = stringPreferencesKey("skips_day")
+        val OFFSET = intPreferencesKey("day_offset")
+        val FIRST_DAY = stringPreferencesKey("first_day")
     }
 }
