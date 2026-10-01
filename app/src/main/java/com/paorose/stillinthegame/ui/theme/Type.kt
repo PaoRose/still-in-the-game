@@ -32,3 +32,6 @@ val StillTypography = Typography(
     labelLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 20.sp),
     labelSmall = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 2.sp)
 )
+
+/** Handwritten notes on the illustrations. */
+val Caveat = FontFamily(Font(R.font.caveat_bold, FontWeight.Bold))

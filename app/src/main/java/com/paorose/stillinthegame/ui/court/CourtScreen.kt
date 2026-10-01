@@ -1,5 +1,13 @@
 package com.paorose.stillinthegame.ui.court
 
+import com.paorose.stillinthegame.ui.theme.MidnightLine
+import com.paorose.stillinthegame.ui.theme.ElectricBlue
+import com.paorose.stillinthegame.ui.common.TextAction
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -40,24 +48,21 @@ import com.paorose.stillinthegame.ui.theme.MutedOnDark
 import com.paorose.stillinthegame.ui.theme.RallyYellow
 import com.paorose.stillinthegame.ui.theme.Sora
 
-/** Short lines for each new piece, per sport. The peak moment of the app. */
-private fun pieceLine(sport: Sport, piece: Int): String {
-    val fourth = when (sport) {
-        Sport.VOLLEYBALL -> "The net is up."
-        Sport.BASKETBALL -> "The hoops are back."
-        Sport.FOOTBALL -> "The goals are back."
-        Sport.RUNNING -> "The finish line is back."
-    }
-    val fifth = if (sport == Sport.RUNNING) "Your spot on the start line is waiting." else "The ball is back in play."
+/** Short lines for each new piece. The peak moment of the app. */
+private fun pieceLine(piece: Int): String {
     val lines = listOf(
-        "The lines are back. Your place is still here.",
-        "Halfway there. You're still part of this.",
-        "Your markings are back on the ${sport.field}.",
-        fourth,
-        fifth,
+        "The ground is ready. Your place is still here.",
+        "Your court has its color back.",
+        "The lines are back.",
+        "The posts are standing again.",
+        "The net is up.",
+        "The ball is back in play.",
+        "There's a bench for you, right by the court.",
+        "Trees around your court. It's starting to feel like home.",
+        "The street lamp is on. Someone left the light on for you.",
         "Your teammates are here.",
-        "The lights just came on.",
-        "Full house. You never left the game."
+        "Your bag and your bottle, ready when you are.",
+        "Lights on, full court. You never left the game."
     )
     return lines[(piece - 1).coerceIn(0, lines.lastIndex)]
 }
@@ -84,31 +89,50 @@ fun CourtScreen(
             .fillMaxSize()
             .background(Midnight)
             .systemBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 24.dp)
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        // Top row, 76 tall.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(76.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("STILL IN THE GAME", style = MaterialTheme.typography.labelSmall, color = MutedOnDark)
             Row {
-                if (!isPlus) TextButton(onClick = onPlus) { Text("Plus", style = MaterialTheme.typography.labelLarge, color = RallyYellow) }
-                TextButton(onClick = onSettings) { Text("Settings", style = MaterialTheme.typography.labelLarge, color = Chalk) }
+                if (!isPlus) TextAction("Plus", RallyYellow, onPlus)
+                TextAction("Settings", Chalk, onSettings)
             }
         }
-        Spacer(Modifier.height(8.dp))
-        Text("Your comeback\njourney", style = MaterialTheme.typography.headlineLarge, color = Chalk)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "Your comeback journey",
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp, lineHeight = 38.sp),
+            color = Chalk
+        )
+        Spacer(Modifier.height(18.dp))
 
-        CourtCanvas(
-            sport = sport,
-            pieces = pieces,
-            reveal = reveal.value,
-            modifier = Modifier
+        // Hero card: the field of return, with a soft blue glow in the middle.
+        val shape = RoundedCornerShape(24.dp)
+        Box(
+            Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .clip(RoundedCornerShape(24.dp))
+                .heightIn(max = 430.dp)
+                .clip(shape)
                 .background(MidnightRaised)
-                .padding(8.dp)
-                .semantics { contentDescription = "Your ${sport.field}: $pieces of $FIELD_PIECES pieces rebuilt" }
-        )
+                .border(1.dp, MidnightLine, shape)
+                .background(Brush.radialGradient(listOf(ElectricBlue.copy(alpha = 0.12f), Color.Transparent)))
+        ) {
+            CourtArt(
+                pieces = pieces,
+                reveal = reveal.value,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .semantics { contentDescription = "Your ${sport.field}: $pieces of $FIELD_PIECES pieces rebuilt" }
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -118,24 +142,26 @@ fun CourtScreen(
                 fontFamily = Sora,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 56.sp,
-                lineHeight = 56.sp,
+                lineHeight = 60.sp,
                 color = CourtOrange
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
             Text(
                 "WAYS YOU STAYED\nPART OF ${sport.label.uppercase()}",
                 style = MaterialTheme.typography.labelSmall,
                 color = Chalk,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 10.dp)
             )
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         val line = when {
             connected == 0 -> "Every small action brings a piece back. Your first one is waiting."
-            else -> pieceLine(sport, pieces)
+            connected > FIELD_PIECES -> "Your court is complete, and you keep showing up. New pieces are on the way."
+            else -> pieceLine(pieces)
         }
         Text(line, style = MaterialTheme.typography.bodyMedium, color = MutedOnDark)
         Spacer(Modifier.height(16.dp))
         PrimaryButton(text = "Today's connection", onClick = onToday)
+        Spacer(Modifier.height(32.dp))
     }
 }

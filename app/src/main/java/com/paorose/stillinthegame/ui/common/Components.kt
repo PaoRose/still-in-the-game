@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +26,7 @@ import com.paorose.stillinthegame.ui.theme.Midnight
 import com.paorose.stillinthegame.ui.theme.MidnightRaised
 import com.paorose.stillinthegame.ui.theme.MutedOnDark
 
-/** Main action. Orange with Midnight text (6.3:1 contrast). */
+/** Primary action: 56 tall, radius 16, full width. Text on orange or blue is always Midnight. */
 @Composable
 fun PrimaryButton(
     text: String,
@@ -33,15 +35,16 @@ fun PrimaryButton(
     enabled: Boolean = true,
     container: Color = CourtOrange,
     content: Color = Midnight,
-    // Disabled = solid and readable (7:1), never a faded version of the active color.
+    // Disabled = solid and readable, never a faded version of the active color.
     disabledContainer: Color = MidnightRaised,
     disabledContent: Color = MutedOnDark
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
+        modifier = modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = container,
             contentColor = content,
@@ -53,7 +56,19 @@ fun PrimaryButton(
     }
 }
 
-/** "01 / 04" plus a short progress bar, used at the top of onboarding steps. */
+/** Centered hint shown 12 above a disabled button. */
+@Composable
+fun Hint(text: String, color: Color) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+    )
+}
+
+/** "01 / 04", 16 gap, 120 x 4 progress track. */
 @Composable
 fun StepHeader(step: Int, total: Int, color: Color, track: Color, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -77,5 +92,13 @@ fun StepHeader(step: Int, total: Int, color: Color, track: Color, modifier: Modi
                     .background(color)
             )
         }
+    }
+}
+
+/** Minimum 48 tall text action. */
+@Composable
+fun TextAction(text: String, color: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.compose.material3.TextButton(onClick = onClick, modifier = modifier.heightIn(min = 48.dp)) {
+        Text(text, style = MaterialTheme.typography.labelLarge, color = color)
     }
 }

@@ -10,14 +10,30 @@ Built for the RevenueCat Shipaton 2026, Next Gen category.
 
 ## What's in the app
 
-- Pick your world: volleyball, basketball, football or running
+- Pick your world: volleyball is open now. Basketball, football and running are coming soon
 - Where are you now: can't participate, participating differently, or getting back into it
 - What you miss most: teammates, playing, improving, competition, routine, belonging
 - Today's connection: one activity a day from a library of 29, matched to your answers
-- Your comeback journey: a court drawn in code that rebuilds piece by piece
+- Your comeback journey: an illustrated night court that comes back in 12 stages, one for each day you show up (court, net, ball, bench, trees, street lamp, teammates, lights)
 - Still In The Game+ through RevenueCat: more than one activity a day and unlimited new suggestions
+- Settings: account, Plus status, restore purchases, promo codes, update your answers, start over
+- Account: optional sign in with a username (RevenueCat app user ID), so Plus can follow you to a new phone
 
 Everything is stored on the phone. No account, no backend. The app gives no medical or physical advice: activities are about watching, learning, reflecting and connecting.
+
+## For judges and testers
+
+You can reach Plus three ways:
+
+1. Promo code. Open the court, tap Settings, then "Redeem a promo code" (or "Have a promo code?" on the Plus screen). Type `SHIPATON2026`. Works offline and even in a build without a RevenueCat key.
+2. Test purchase. Builds with a RevenueCat Test Store key show the real paywall. Tap "Get Plus" and confirm the test purchase. No money moves.
+3. Account. Sign in with a username in Settings > Account. Plus granted to that user in the RevenueCat dashboard (a promotional entitlement) turns on right away.
+
+A redeemed code is also saved as the `promo_code` attribute on the RevenueCat customer, so it shows up in the dashboard.
+
+## What's next
+
+Recovery doesn't have a fixed end date, so the journey shouldn't either. Next up: more stages after the 12th (a crowd, a scoreboard, a season banner), courts for the other sports, and new places to unlock for long recoveries.
 
 ## How to run it
 
@@ -42,6 +58,8 @@ Kotlin, Jetpack Compose, DataStore, RevenueCat SDK 9.9. Min SDK 26.
 
 ## Credits
 
-Fonts: [Sora](https://fonts.google.com/specimen/Sora) and [Inter](https://fonts.google.com/specimen/Inter), both under the SIL Open Font License.
+Fonts: [Sora](https://fonts.google.com/specimen/Sora), [Inter](https://fonts.google.com/specimen/Inter) and [Caveat](https://fonts.google.com/specimen/Caveat), all under the SIL Open Font License.
+
+Illustrations: painted in code with Python and Pillow, see `tools/art_gen.py`.
 
 Code under the MIT License, see `LICENSE`.

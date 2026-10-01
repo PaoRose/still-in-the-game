@@ -2,6 +2,7 @@ package com.paorose.stillinthegame.ui.plus
 
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import com.paorose.stillinthegame.ui.theme.Chalk
 import com.paorose.stillinthegame.ui.theme.CourtOrange
 import com.paorose.stillinthegame.ui.theme.ElectricBlue
 import com.paorose.stillinthegame.ui.theme.Midnight
+import com.paorose.stillinthegame.ui.theme.MidnightLine
 import com.paorose.stillinthegame.ui.theme.MidnightRaised
 import com.paorose.stillinthegame.ui.theme.MutedOnDark
 import com.paorose.stillinthegame.ui.theme.RallyYellow
@@ -51,7 +53,7 @@ import com.revenuecat.purchases.purchaseWith
 import com.revenuecat.purchases.restorePurchasesWith
 
 @Composable
-fun PlusScreen(onClose: () -> Unit) {
+fun PlusScreen(onClose: () -> Unit, onPromo: () -> Unit) {
     val activity = LocalContext.current as? Activity
     val isPlus by Plus.active.collectAsState()
     var pkg by remember { mutableStateOf<Package?>(null) }
@@ -60,7 +62,7 @@ fun PlusScreen(onClose: () -> Unit) {
 
     LaunchedEffect(Unit) {
         if (!Plus.configured) {
-            status = "Purchases aren't set up in this build yet."
+            status = "Purchases aren't set up in this build. You can still unlock Plus with a promo code."
             return@LaunchedEffect
         }
         Purchases.sharedInstance.getOfferingsWith(
@@ -74,9 +76,9 @@ fun PlusScreen(onClose: () -> Unit) {
             .fillMaxSize()
             .background(Midnight)
             .systemBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 24.dp)
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(Modifier.fillMaxWidth().height(72.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onClose) { Text("Close", style = MaterialTheme.typography.labelLarge, color = Chalk) }
         }
         Column(
@@ -84,9 +86,10 @@ fun PlusScreen(onClose: () -> Unit) {
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(Modifier.height(24.dp))
             Text("STILL IN THE GAME+", style = MaterialTheme.typography.labelSmall, color = RallyYellow)
-            Spacer(Modifier.height(10.dp))
-            Text("Stay closer\nto the game.", style = MaterialTheme.typography.headlineLarge, color = Chalk)
+            Spacer(Modifier.height(12.dp))
+            Text("Stay closer to the game.", style = MaterialTheme.typography.headlineLarge, color = Chalk)
             Spacer(Modifier.height(24.dp))
 
             // Free is always listed first: nobody pays to stay connected.
@@ -106,7 +109,8 @@ fun PlusScreen(onClose: () -> Unit) {
                 items = listOf(
                     "More than one activity a day, whenever you want",
                     "Unlimited \"give me another one\"",
-                    "Build your court faster on the days you need it most"
+                    "Build your court faster on the days you need it most",
+                    "Plus follows you to a new phone when you sign in"
                 )
             )
             Spacer(Modifier.height(16.dp))
@@ -115,6 +119,7 @@ fun PlusScreen(onClose: () -> Unit) {
 
         if (isPlus) {
             PrimaryButton(text = "You're on Plus", onClick = onClose, container = RallyYellow)
+            Spacer(Modifier.height(24.dp))
         } else {
             val price = pkg?.product?.price?.formatted
             PrimaryButton(
@@ -148,24 +153,30 @@ fun PlusScreen(onClose: () -> Unit) {
                 },
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Restore purchases", style = MaterialTheme.typography.labelLarge, color = Chalk) }
+            TextButton(onClick = onPromo, modifier = Modifier.fillMaxWidth()) {
+                Text("Have a promo code?", style = MaterialTheme.typography.labelLarge, color = RallyYellow)
+            }
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
 private fun PlanCard(title: String, accent: Color, items: List<String>) {
+    val shape = RoundedCornerShape(20.dp)
     Box(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(shape)
             .background(MidnightRaised)
+            .border(1.dp, MidnightLine, shape)
             .padding(18.dp)
     ) {
         Column {
             Text(title, style = MaterialTheme.typography.titleLarge, color = Chalk)
             Spacer(Modifier.height(10.dp))
             items.forEach { line ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 6.5.dp)) {
                     Box(
                         Modifier
                             .size(8.dp)
